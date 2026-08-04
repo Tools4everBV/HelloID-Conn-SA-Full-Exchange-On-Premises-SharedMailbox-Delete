@@ -1,66 +1,65 @@
+# HelloID-Conn-SA-Full-Exchange-On-Premises-SharedMailboxDelete
+
+| :information_source: Information |
+| :------------------------------- |
+| This repository contains the connector and configuration code only. The implementer is responsible for acquiring the connection details such as Exchange connection URI, admin credentials, etc. You might need to coordinate with the client's Exchange administrator before implementing this connector. |
+
 ## Description
 
-HelloID-Conn-SA-Full-Exchange-On-Premise-SharedMailboxDelete is a delegated form designed for use with HelloID Service Automation (SA). It can be imported into HelloID and customized according to your requirements.
+HelloID-Conn-SA-Full-Exchange-On-Premises-SharedMailboxDelete is a delegated form designed for use with HelloID Service Automation (SA). It can be imported into HelloID and customized according to your requirements.
 
-By using this delegated form, you can delete a shared mailbox in Exchange On-Premise. The following options are available:
+By using this delegated form, you can delete a shared mailbox in Exchange On-Premises. The following options are available:
 
-1. Search and select a shared mailbox (wildcard search by name, alias, email addresses, and display name)
+1. Search and select a shared mailbox (wildcard search by name, alias, display name, primary SMTP address, and email addresses)
 2. Delete the selected shared mailbox
 
-## Versioning
-| Version | Description | Date |
-| - | - | - |
-| 2.0.0   | Updated to latest best practices | 2026/08/04 |
-| 1.0.0   | Initial release | 2023/08/18 |
+## Getting started
 
-<!-- TABLE OF CONTENTS -->
-## Table of Contents
-* [Description](#description)
-* [All-in-one PowerShell setup script](#all-in-one-powershell-setup-script)
-  * [Getting started](#getting-started)
-* [Post-setup configuration](#post-setup-configuration)
-* [Manual resources](#manual-resources)
+### Requirements
 
+#### Exchange On-Premises Setup
 
-## All-in-one PowerShell setup script
-The PowerShell script "createform.ps1" contains a complete PowerShell script using the HelloID API to create the complete Form including user defined variables, tasks and data sources.
+Before implementing this connector, make sure you have the following in place:
 
- _Please note that this script asumes none of the required resources do exists within HelloID. The script does not contain versioning or source control_
+* **Exchange Server PowerShell Remoting** enabled
+  * The Exchange server must have PowerShell remoting configured
+  * The connection URI should be accessible from the HelloID agent
+* **Admin Credentials**
+  * A service account with Exchange admin permissions
+  * The account must have rights to delete shared mailboxes
+* **Network Connectivity**
+  * The HelloID agent must be able to reach the Exchange server on the PowerShell remoting port (typically HTTPS port 443)
 
+#### HelloID-specific configuration
 
-### Getting started
-Please follow the documentation steps on [HelloID Docs](https://docs.helloid.com/hc/en-us/articles/360017556559-Service-automation-GitHub-resources) in order to setup and run the All-in one Powershell Script in your own environment.
+Once you have the Exchange environment ready, configure the following HelloID-specific requirements:
 
-
-## Post-setup configuration
-After the all-in-one PowerShell script has run and created all the required resources, the following items need to be configured according to your own environment:
+* **Exchange Permissions**
+  * The service account needs permissions to:
+    * View shared mailboxes (`Get-Mailbox`)
+    * Delete shared mailboxes (`Remove-Mailbox`)
+* **Connection Settings**
+  * Exchange Connection URI (e.g., `https://exchange.domain.com/PowerShell`)
+  * Admin username (e.g., `svc-helloid@domain.com`)
+  * Admin password (stored securely in HelloID)
 
 ### Connection settings
 
 The following global variables must be configured in HelloID when importing and configuring the delegated form:
 
-| Variable | Description | Example | Mandatory |
-| -------- | ----------- | ------- | --------- |
-| ExchangeConnectionUri | The URI to connect to Exchange On-Premise | https://exchangeserver.domain.com/PowerShell | Yes |
-| ExchangeAdminUsername | The username for Exchange admin account | admin@domain.com | Yes |
-| ExchangeAdminPassword | The password for Exchange admin account | ******** | Yes |
+| Variable | Description | Mandatory |
+| -------- | ----------- | --------- |
+| ExchangeConnectionUri | The URI to connect to Exchange On-Premises (e.g., https://exchange.domain.com/PowerShell) | Yes |
+| ExchangeAdminUsername | The username for Exchange admin account | Yes |
+| ExchangeAdminPassword | The password for Exchange admin account | Yes |
 
-## Manual resources
-This Delegated Form uses the following resources in order to run:
-
-### PowerShell data source
-**[powershell-datasource]_Exchange-on-premise-get-sharedmailboxes.ps1**
-
-This PowerShell data source searches for shared mailboxes in Exchange On-Premise based on the user's search input. It supports wildcard search across mailbox properties (Name, Alias, DisplayName, PrimarySmtpAddress).
-
-### Delegated form task
-**[Remarks
+## Remarks
 
 ### Mailbox Search and Deletion
 
 #### Shared Mailbox Search Process
 
-The form includes a search field that retrieves matching shared mailboxes using Exchange On-Premise cmdlets:
+The form includes a search field that retrieves matching shared mailboxes using Exchange On-Premises cmdlets:
 
 1. Search Mailboxes (`Get-Mailbox` cmdlet)
    * Mailbox type: Filters by `RecipientTypeDetails = SharedMailbox`
@@ -70,14 +69,14 @@ The form includes a search field that retrieves matching shared mailboxes using 
 
 #### Shared Mailbox Deletion Process
 
-When the form is submitted, the following process occurs in Exchange On-Premise:
+When the form is submitted, the following process occurs in Exchange On-Premises:
 
 1. Delete Mailbox (`Remove-Mailbox` cmdlet)
    * The script removes the selected shared mailbox using `Remove-Mailbox` with the `Confirm:$false` parameter
-   * The mailbox and all associated data are permanently deleted from Exchange On-Premise
+   * The mailbox and all associated data are permanently deleted from Exchange On-Premises
    * No data recovery is possible after deletion
 
-## Development resources
+## Development resourcesDisplayName`, `PrimarySmtpAddress`, and `EmailAddresses
 
 ### PowerShell Cmdlets
 
@@ -85,7 +84,7 @@ The following PowerShell cmdlets are used by the connector:
 
 | Cmdlet | Description |
 | ------ | ----------- |
-| New-PSSession | Create a remote PowerShell session to Exchange On-Premise |
+| New-PSSession | Create a remote PowerShell session to Exchange On-Premises |
 | Import-PSSession | Import cmdlets from the remote Exchange session |
 | Get-Mailbox | Search and retrieve mailboxes to find shared mailboxes |
 | Remove-Mailbox | Delete a shared mailbox |
@@ -95,7 +94,7 @@ The following PowerShell cmdlets are used by the connector:
 
 For more information on the PowerShell cmdlets used in this connector, please refer to:
 
-Exchange On-Premise PowerShell:
+Exchange On-Premises PowerShell:
 
 * [Connect to Exchange servers using remote PowerShell](https://learn.microsoft.com/en-us/powershell/exchange/connect-to-exchange-servers-using-remote-powershell)
 * [Get-Mailbox](https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox)

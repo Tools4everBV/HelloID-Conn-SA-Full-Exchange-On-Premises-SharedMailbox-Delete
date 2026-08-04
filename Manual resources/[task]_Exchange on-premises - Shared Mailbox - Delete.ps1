@@ -32,9 +32,9 @@ try {
     
     Write-Verbose "Created credentials for user [$ExchangeAdminUsername]"
 
-    # Connect to Exchange On-Premise
+    # Connect to Exchange On-Premises
     # Docs: https://learn.microsoft.com/en-us/powershell/exchange/connect-to-exchange-servers-using-remote-powershell
-    $actionMessage = "connecting to Exchange On-Premise"
+    $actionMessage = "connecting to Exchange On-Premises"
 
     $sessionOptionParams = @{
         SkipCACheck         = $false
@@ -55,13 +55,11 @@ try {
 
     $exchangeSession = New-PSSession @sessionParams
     $null = Import-PSSession -Session $exchangeSession -DisableNameChecking -AllowClobber -CommandName $commands -ErrorAction Stop
-    
-    Write-Information "Successfully connected to Exchange using URI [$ExchangeConnectionUri]"
 
     # Send initial audit log
     $Log = @{
         Action            = "DeleteResource" # optional. ENUM (undefined = default) 
-        System            = "Exchange On-Premise" # optional (free format text) 
+        System            = "Exchange On-Premises" # optional (free format text) 
         Message           = "Successfully connected to Exchange using URI [$ExchangeConnectionUri]" # required (free format text) 
         IsError           = $false # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) 
         TargetDisplayName = $ExchangeConnectionUri # optional (free format text) 
@@ -84,7 +82,7 @@ try {
     # Send success audit log to HelloID
     $Log = @{
         Action            = "DeleteResource" # optional. ENUM (undefined = default) 
-        System            = "Exchange On-Premise" # optional (free format text) 
+        System            = "Exchange On-Premises" # optional (free format text) 
         Message           = "Deleted shared mailbox with UserPrincipalName [$($mailbox.UserPrincipalName)]"  # required (free format text) 
         IsError           = $false # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) 
         TargetDisplayName = $mailbox.DisplayName # optional (free format text) 
@@ -107,7 +105,7 @@ catch {
     # Send error audit log to HelloID
     $Log = @{
         Action            = "DeleteResource" # optional. ENUM (undefined = default) 
-        System            = "Exchange On-Premise" # optional (free format text) 
+        System            = "Exchange On-Premises" # optional (free format text) 
         Message           = $auditMessage # required (free format text) 
         IsError           = $true # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) 
         TargetDisplayName = $mailbox.DisplayName # optional (free format text) 
@@ -129,12 +127,11 @@ finally {
                 ErrorAction = "Stop"
             }
             $null = Remove-PSSession @deleteExchangeSessionSplatParams
-            Write-Information "Successfully disconnected from Exchange using URI [$ExchangeConnectionUri]"
 
             # Send disconnect audit log
             $Log = @{
                 Action            = "DeleteResource" # optional. ENUM (undefined = default) 
-                System            = "Exchange On-Premise" # optional (free format text) 
+                System            = "Exchange On-Premises" # optional (free format text) 
                 Message           = "Successfully disconnected from Exchange using URI [$ExchangeConnectionUri]" # required (free format text) 
                 IsError           = $false # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) 
                 TargetDisplayName = $ExchangeConnectionUri # optional (free format text) 

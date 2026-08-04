@@ -5,8 +5,13 @@ if ([string]::IsNullOrWhiteSpace($searchValue)) {
     return
 }
 
-# Build search query with wildcard
-$searchQuery = "*$searchValue*"
+# Build filter based on search value
+if ($searchValue -eq "*") {
+    $filter = "RecipientTypeDetails -eq 'SharedMailbox'"
+}
+else {
+    $filter = "RecipientTypeDetails -eq 'SharedMailbox' -and (Alias -like '*$searchValue*' -or Name -like '*$searchValue*' -or DisplayName -like '*$searchValue*' -or PrimarySmtpAddress -like '*$searchValue*' -or EmailAddresses -like '*$searchValue*')"
+}
 
 # Global variables
 # Outcommented as these are set from Global Variables
@@ -22,6 +27,7 @@ $propertiesToSelect = @(
     , "Name"
     , "Alias"
     , "PrimarySmtpAddress"
+    , "EmailAddresses"
     , "UserPrincipalName"
     , "RecipientTypeDetails"
 )
@@ -43,12 +49,10 @@ try {
     
     $securePassword = ConvertTo-SecureString -String $ExchangeAdminPassword -AsPlainText -Force
     $credential = [System.Management.Automation.PSCredential]::new($ExchangeAdminUsername, $securePassword)
-    
-    Write-Information "Created credentials for user [$ExchangeAdminUsername]"
 
-    # Connect to Exchange On-Premise
+    # Connect to Exchange On-Premises
     # Docs: https://learn.microsoft.com/en-us/powershell/exchange/connect-to-exchange-servers-using-remote-powershell
-    $actionMessage = "connecting to Exchange On-Premise"
+    $actionMessage = "connecting to Exchange On-Premises using URI [$ExchangeConnectionUri]"
 
     $sessionOptionParams = @{
         SkipCACheck         = $false
@@ -69,16 +73,10 @@ try {
 
     $exchangeSession = New-PSSession @sessionParams
     $null = Import-PSSession -Session $exchangeSession -DisableNameChecking -AllowClobber -CommandName "Get-Mailbox" -ErrorAction Stop
-    
-    Write-Information "Successfully connected to Exchange using URI [$ExchangeConnectionUri]"
 
     # Get Mailboxes
     # Docs: https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox
-    $actionMessage = "querying shared mailboxes that match search query [$searchQuery]"
-
-    # Build filter for Get-Mailbox
-    # Note: Exchange On-Premise uses different filter syntax than Exchange Online
-    $filter = "RecipientTypeDetails -eq 'SharedMailbox' -and (Alias -like '$searchQuery' -or Name -like '$searchQuery' -or PrimarySmtpAddress -like '$searchQuery' -or DisplayName -like '$searchQuery')"
+    $actionMessage = "querying shared mailboxes that match filter [$($filter)]"
 
     $getMailboxesSplatParams = @{
         Filter      = $filter
@@ -87,7 +85,7 @@ try {
     }
 
     $mailboxes = Get-Mailbox @getMailboxesSplatParams | Select-Object -Property $propertiesToSelect
-    Write-Information "Queried shared mailboxes that match search query [$searchQuery]. Result count: $(($mailboxes | Measure-Object).Count)"
+    Write-Information "Queried shared mailboxes that match filter [$($filter)]. Result count: $(($mailboxes | Measure-Object).Count)"
 
     # Sort and send results to HelloID
     $actionMessage = "sending results to HelloID"
@@ -113,12 +111,16 @@ finally {
     # Disconnect from Exchange
     # Docs: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/remove-pssession
     if ($null -ne $exchangeSession) {
-        $deleteExchangeSessionSplatParams = @{
-            Session     = $exchangeSession
-            Confirm     = $false
-            ErrorAction = "Stop"
+        try {
+            $deleteExchangeSessionSplatParams = @{
+                Session     = $exchangeSession
+                Confirm     = $false
+                ErrorAction = "Stop"
+            }
+            $null = Remove-PSSession @deleteExchangeSessionSplatParams
         }
-        $null = Remove-PSSession @deleteExchangeSessionSplatParams
-        Write-Information "Successfully disconnected from Exchange using URI [$ExchangeConnectionUri]"
+        catch {
+            Write-Warning "Failed to disconnect from Exchange using URI [$ExchangeConnectionUri]. Error: $($_.Exception.Message)"
+        }
     }
 }

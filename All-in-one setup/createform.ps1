@@ -36,8 +36,7 @@ $globalHelloIDVariables.Add([PSCustomObject]@{name = $tmpName; value = $tmpValue
 $tmpName = @'
 ExchangeAdminUsername
 '@ 
-$tmpValue = @'
-'@ 
+$tmpValue = ""
 $globalHelloIDVariables.Add([PSCustomObject]@{name = $tmpName; value = $tmpValue; secret = "False"});
 
 
@@ -342,12 +341,6 @@ foreach ($item in $globalHelloIDVariables) {
 $tmpPsScript = @'
 # Variables configured in form
 $searchValue = $datasource.searchValue
-if ([string]::IsNullOrWhiteSpace($searchValue)) {
-    # Return empty result if no search value is provided
-    return
-}
-
-# Build filter based on search value
 if ($searchValue -eq "*") {
     $filter = "RecipientTypeDetails -eq 'SharedMailbox'"
 }

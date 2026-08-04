@@ -1,11 +1,5 @@
 # Variables configured in form
 $searchValue = $datasource.searchValue
-if ([string]::IsNullOrWhiteSpace($searchValue)) {
-    # Return empty result if no search value is provided
-    return
-}
-
-# Build filter based on search value
 if ($searchValue -eq "*") {
     $filter = "RecipientTypeDetails -eq 'SharedMailbox'"
 }

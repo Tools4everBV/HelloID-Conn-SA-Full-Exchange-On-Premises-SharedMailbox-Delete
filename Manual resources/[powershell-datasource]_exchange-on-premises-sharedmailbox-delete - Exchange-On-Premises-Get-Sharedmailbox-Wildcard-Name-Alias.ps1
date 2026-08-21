@@ -4,7 +4,7 @@ if ($searchValue -eq "*") {
     $filter = "RecipientTypeDetails -eq 'SharedMailbox'"
 }
 else {
-    $filter = "RecipientTypeDetails -eq 'SharedMailbox' -and (Alias -like '*$searchValue*' -or Name -like '*$searchValue*' -or DisplayName -like '*$searchValue*' -or PrimarySmtpAddress -like '*$searchValue*' -or EmailAddresses -like '*$searchValue*')"
+    $filter = "RecipientTypeDetails -eq 'SharedMailbox' -and (Name -like '*$searchValue*' -or SamAccountName -like '*$searchValue*' -or Alias -like '*$searchValue*' -or PrimarySmtpAddress -like '*$searchValue*')"
 }
 
 # Global variables
@@ -24,6 +24,7 @@ $propertiesToSelect = @(
     , "EmailAddresses"
     , "UserPrincipalName"
     , "RecipientTypeDetails"
+    , "HiddenFromAddressListsEnabled"
 )
 
 # Enable TLS1.2
@@ -68,7 +69,7 @@ try {
     $exchangeSession = New-PSSession @sessionParams
     $null = Import-PSSession -Session $exchangeSession -DisableNameChecking -AllowClobber -CommandName "Get-Mailbox" -ErrorAction Stop
 
-    # Get Mailboxes
+     # Get Mailboxes
     # Docs: https://learn.microsoft.com/en-us/powershell/module/exchange/get-mailbox
     $actionMessage = "querying shared mailboxes that match filter [$($filter)]"
 
@@ -85,9 +86,8 @@ try {
     $actionMessage = "sending results to HelloID"
     $mailboxes | Sort-Object -Property DisplayName | ForEach-Object {
         Write-Output $_
-    }
-}
-catch {
+    }   
+} catch {
     $ex = $PSItem
     if (-not [string]::IsNullOrEmpty($ex.Exception.Message)) {
         $warningMessage = "Error at Line [$($ex.InvocationInfo.ScriptLineNumber)]: $($ex.InvocationInfo.Line). Error: $($ex.Exception.Message)"

@@ -30,5 +30,9 @@
     {
         "key":  "RecipientTypeDetails",
         "type":  0
+    },
+    {
+        "key":  "HiddenFromAddressListsEnabled",
+        "type":  0
     }
 ]

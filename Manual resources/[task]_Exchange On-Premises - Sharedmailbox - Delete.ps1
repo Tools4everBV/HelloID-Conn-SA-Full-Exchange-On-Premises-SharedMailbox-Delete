@@ -1,5 +1,5 @@
 # Variables configured in form
-$mailbox = $form.gridMailbox
+$mailbox = $form.gridmailbox
 
 # Global variables
 # Outcommented as these are set from Global Variables
@@ -23,7 +23,7 @@ $WarningPreference = "Continue"
 #region functions
 #endregion functions
 
-try {
+try {    
     # Create credentials
     $actionMessage = "creating credentials object"
     
@@ -68,8 +68,7 @@ try {
     Write-Information -Tags "Audit" -MessageData $log
 
     # Remove shared mailbox
-    # Docs: https://learn.microsoft.com/en-us/powershell/module/exchange/remove-mailbox
-    $actionMessage = "deleting shared mailbox with UserPrincipalName [$($mailbox.UserPrincipalName)]"
+    $actionMessage = "deleting shared mailbox with PrimarySmtpAddress [$($mailbox.PrimarySmtpAddress)]"
 
     $deleteMailboxParams = @{
         Identity    = $mailbox.UserPrincipalName
@@ -78,17 +77,15 @@ try {
     }
 
     $null = Remove-Mailbox @deleteMailboxParams
-
-    # Send success audit log to HelloID
+    # Send auditlog to HelloID
     $Log = @{
         Action            = "DeleteResource" # optional. ENUM (undefined = default) 
         System            = "Exchange On-Premises" # optional (free format text) 
-        Message           = "Deleted shared mailbox with UserPrincipalName [$($mailbox.UserPrincipalName)]"  # required (free format text) 
+        Message           = "Deleted shared mailbox with PrimarySmtpAddress [$($mailbox.PrimarySmtpAddress)]"  # required (free format text) 
         IsError           = $false # optional. Elastic reporting purposes only. (default = $false. $true = Executed action returned an error) 
         TargetDisplayName = $mailbox.DisplayName # optional (free format text) 
         TargetIdentifier  = $mailbox.PrimarySmtpAddress # optional (free format text) 
     }
-    
     Write-Information -Tags "Audit" -MessageData $log
 }
 catch {
